@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projeto Quanto Custa — Prefeituras e câmaras da Bahia</title>
+<link rel="icon" href="marca/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="Projeto Quanto Custa — Prefeituras e câmaras da Bahia">
+<meta property="og:description" content="Quanto custam as câmaras municipais e as prefeituras dos 417 municípios da Bahia desde 2017, com dados oficiais do Tesouro Nacional (SICONFI), TSE e IBGE, corrigidos pela inflação.">
+<meta property="og:image" content="https://quantocustaum.com/og.png">
+<meta property="og:url" content="https://quantocustaum.com/quanto-custa-municipios-ba/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Quanto custam as câmaras municipais e as prefeituras dos 417 municípios da Bahia desde 2017, com dados oficiais do Tesouro Nacional (SICONFI), TSE e IBGE, corrigidos pela inflação.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="tema.css?v=1">
+<link rel="stylesheet" href="municipios.css?v=1">
+<link rel="stylesheet" href="marca/tokens.css?v=1">
+<link rel="stylesheet" href="marca/marca.css?v=1">
+<link rel="stylesheet" href="bahia.css?v=1">
+</head>
+<body>
+<aside class="menu" id="menu" aria-label="Menu">
+  <a class="marca" href="https://quantocustaum.com/" title="Voltar ao início do Projeto Quanto Custa"><span class="marca-col"><img class="marca-logo" src="marca/logo-horizontal-negativo.svg" alt="Quanto Custa?" width="164" height="30"><small class="marca-sub">Prefeitos e vereadores · BA</small></span></a>
+  <nav>
+    <a class="hub-link" href="https://quantocustaum.com/" title="Voltar ao início do Projeto Quanto Custa">← Todas as esferas</a>
+    <button data-pag="inicio"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Início</button>
+    <button data-pag="camaras"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10M19 21V10M9 21v-7M15 21v-7M2 10l10-6 10 6z"/></svg>Vereadores e câmaras</button>
+    <button data-pag="municipio"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Meu município</button>
+    <button data-pag="metodo"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM9 10h6M9 14h6"/></svg>Como calculamos</button>
+  </nav>
+  <p class="menu-rodape" id="atualizado"></p>
+</aside>
+<div class="veu" id="veu" hidden></div>
+
+<div class="conteudo">
+  <header class="topo-movel">
+    <button class="hamburguer" id="abrir-menu" aria-label="Abrir menu" aria-controls="menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <span class="topo-marca"><img class="marca-logo" src="marca/logo-horizontal-negativo.svg" alt="Quanto Custa?" width="131" height="24"><small>Prefeitos e vereadores · BA</small></span>
+    <a class="hub-link topo" href="https://quantocustaum.com/">← Início</a>
+  </header>
+
+  <section class="segmentacoes" aria-label="Filtros">
+    <label>Ano<select id="f-ano"></select></label>
+    <label class="busca">Município<input id="f-mun" list="lista-mun" type="search" placeholder="Digite o nome da cidade" autocomplete="off"></label>
+    <datalist id="lista-mun"></datalist>
+    <label class="chave"><input id="f-ipca" type="checkbox" checked><span>Valores de hoje<small id="ipca-ref">corrigidos pelo IPCA</small></span></label>
+  </section>
+  <p class="aviso" id="aviso" hidden></p>
+
+  <main>
+    <section class="pagina" data-pag="inicio">
+      <div class="hero">
+        <div>
+          <div class="visitas-linha" data-visitas hidden><span class="visitas"><span class="vis-ponto" aria-hidden="true"></span><b>—</b> visitas ao Projeto Quanto Custa</span></div>
+          <p class="selo">Projeto Quanto Custa · Bahia</p>
+          <h1>Quanto custam as câmaras e as prefeituras da Bahia?</h1>
+          <p class="hero-sub">Os 417 municípios da Bahia, desde 2017: o custo de cada câmara municipal, por vereador e por habitante, e para onde vai o dinheiro de cada prefeitura. Dados oficiais do Tesouro Nacional, <strong>corrigidos pela inflação (IPCA)</strong>.</p>
+          <p class="limite" id="i-limite"></p>
+          <p><button class="btn" data-ir="municipio" type="button">Ver o meu município</button></p>
+        </div>
+        <div class="kpis" id="i-kpis"></div>
+      </div>
+      <div class="grade">
+        <article class="visual span-6"><header><h2>Câmaras mais caras por habitante</h2><span class="dica">top 5 · clique para abrir</span></header><ol class="top5" id="i-top-hab"></ol></article>
+        <article class="visual span-6"><header><h2>Câmaras mais caras por vereador</h2><span class="dica">top 5 · clique para abrir</span></header><ol class="top5" id="i-top-ver"></ol></article>
+      </div>
+    </section>
+
+    <section class="pagina" data-pag="camaras">
+      <div class="divergencias" id="c-diverg" hidden></div>
+      <div class="kpis" id="c-kpis"></div>
+      <article class="visual"><header><h2>Câmaras municipais</h2>
+        <span class="filtros-tabela"><input id="c-busca" class="mini-busca" type="search" placeholder="Filtrar por cidade"></span>
+        <span class="dica">custo por vereador = gasto da câmara ÷ vereadores eleitos · clique no título da coluna para ordenar</span></header>
+        <div class="tabela-rolagem"><table class="ranking" id="c-tab"></table></div>
+        <button class="btn-sec mais" id="c-mais" type="button" hidden>Mostrar mais</button></article>
+    </section>
+
+    <section class="pagina" data-pag="municipio">
+      <div id="m-vazio" class="vazio">Escolha um município no campo <strong>Município</strong> acima.</div>
+      <div id="m-conteudo" hidden>
+        <h2 class="titulo-mun" id="m-titulo"></h2>
+        <p class="sub" id="m-sub"></p>
+        <div class="divergencias" id="m-diverg" hidden></div>
+        <div class="kpis" id="m-kpis"></div>
+        <article class="visual ep" id="m-empenho"></article>
+        <div class="grade">
+          <article class="visual span-6"><header><h2>Prefeito e vice</h2><span class="dica" id="m-mandato"></span></header><div id="m-pref"></div></article>
+          <article class="visual span-6"><header><h2>A câmara ao longo dos anos</h2><span class="dica">empenhado, por ano · * ano ainda parcial</span></header>
+            <div class="canvas-box"><canvas id="g-hist"></canvas></div></article>
+          <article class="visual span-6"><header><h2>Para onde vai o dinheiro da prefeitura</h2><span class="dica">empenhado por área (função) · em escuro, a câmara (Legislativa)</span></header>
+            <div class="canvas-box muito-alto"><canvas id="g-funcao"></canvas></div></article>
+          <article class="visual span-6"><header><h2>Vereadores eleitos</h2><span class="dica" id="m-ver-dica"></span></header>
+            <div class="tabela-rolagem"><table class="ranking" id="m-ver"></table></div></article>
+        </div>
+        <p class="limite">Nota a nota (notas de empenho, fornecedores, notas fiscais) e os gabinetes do prefeito e do vice <b>ainda não estão disponíveis para a Bahia</b>: veja o porquê em <a href="#metodo" data-ir="metodo">Como calculamos</a>.</p>
+      </div>
+    </section>
+
+    <section class="pagina texto" data-pag="metodo">
+      <article class="visual">
+        <h2>De onde vêm os dados</h2>
+        <ul>
+          <li><strong>Tesouro Nacional — SICONFI</strong>: o Relatório Resumido da Execução Orçamentária (RREO), Anexo 2, que toda prefeitura do país entrega a cada dois meses, com a despesa por área (função). A câmara municipal é a função <strong>"Legislativa"</strong>.</li>
+          <li><strong>TSE</strong>: prefeitos, vices e vereadores eleitos em 2016, 2020 e 2024, partido e bens declarados.</li>
+          <li><strong>IBGE</strong>: população estimada de cada ano (e o Censo 2022).</li>
+          <li><strong>Banco Central</strong>: IPCA, para trazer valores antigos para preços de hoje.</li>
+        </ul>
+        <h2>Por que não o Tribunal de Contas dos Municípios da Bahia (TCM-BA)?</h2>
+        <p>O TCM-BA tem os dados nota a nota das prefeituras baianas, mas o site dele <strong>não responde aos computadores do GitHub</strong>, onde o robô deste projeto roda (testamos várias vezes, em horários diferentes). Por isso usamos o SICONFI, do Tesouro Nacional, que recebe os relatórios de todas as prefeituras do país.</p>
+        <p><strong>Conferimos antes de usar:</strong> nos municípios do Ceará, onde temos os dois, a função Legislativa do SICONFI (somando a parte intraorçamentária) é <strong>igual, centavo por centavo,</strong> ao gasto da câmara no Tribunal de Contas do Ceará, e o total do SICONFI (sem a parte intraorçamentária) é igual ao gasto total da prefeitura (Fortaleza e Sobral, 2025).</p>
+        <h2>Como medimos o gasto</h2>
+        <p><strong>Empenhado</strong>: o dinheiro já reservado no orçamento para uma despesa (a despesa realizada pela Lei 4.320/64). É o mesmo critério usado no Ceará. Com o ano fechado, é o gasto do ano.</p>
+        <p><strong>Liquidado em vez de pago</strong>: o relatório do Tesouro <strong>não informa o valor pago</strong> por área, só o <strong>liquidado</strong> (o serviço foi entregue e conferido; falta só pagar). Por isso, na Bahia, mostramos empenhado, liquidado e "a liquidar", e não "pago". No Ceará, o Tribunal de Contas informa o pago.</p>
+        <p><strong>Gasto total da prefeitura</strong>: a despesa de todos os órgãos do município, sem a parte intraorçamentária (pagamentos de um órgão do município a outro, como a contribuição à previdência própria), para não contar o mesmo dinheiro duas vezes.</p>
+        <p><strong>Câmara</strong>: inclui a parte intraorçamentária da função Legislativa (por exemplo, a contribuição da câmara à previdência dos seus servidores), como no Tribunal de Contas do Ceará.</p>
+        <h2>O ano em andamento</h2>
+        <p>As prefeituras entregam o relatório a cada dois meses, com prazo de 30 dias depois do fim do bimestre. Por isso o ano em andamento vai até o último bimestre entregue por cada prefeitura (aparece na página do município e na lista das câmaras). O robô procura relatórios novos todos os dias.</p>
+        <h2>O que ainda não dá para saber na Bahia, e por quê</h2>
+        <ul>
+          <li><strong>Notas de empenho, fornecedores, notas fiscais e itens</strong>: só o TCM-BA tem, e o site dele não responde ao robô. O relatório do Tesouro traz só os totais por área.</li>
+          <li><strong>Gabinetes do prefeito e do vice</strong>: o relatório do Tesouro agrupa a despesa por área (função), e os gabinetes ficam misturados na função "Administração" com outras secretarias.</li>
+          <li><strong>O valor pago</strong> por área: o relatório traz só o liquidado (veja acima).</li>
+          <li><strong>Receitas</strong> (de onde vem o dinheiro): ainda não coletadas; entram numa próxima etapa.</li>
+          <li><strong>O salário exato de cada prefeito e vereador</strong>: não está em nenhuma das fontes. Mostramos o <strong>teto constitucional</strong> do salário do vereador (art. 29, VI: de 20% a 75% do salário do deputado estadual, conforme a população).</li>
+          <li><strong>Prefeituras que não entregaram o relatório</strong> ao Tesouro aparecem listadas, ano a ano, na página das câmaras. A obrigação de entregar é de cada prefeitura.</li>
+          <li>Suplentes que assumiram no meio do mandato e eleições suplementares ainda não entram na contagem de vereadores.</li>
+        </ul>
+        <h2>Valores de hoje</h2>
+        <p>Com a chave ligada, cada ano é multiplicado pela inflação acumulada (IPCA) até o último mês divulgado.</p>
+        <div id="m-faltas"></div>
+      </article>
+    </section>
+  </main>
+  <p class="rodape">Projeto Quanto Custa · projeto independente, sem vínculo com o Tesouro Nacional, o TCM-BA nem as prefeituras · dados públicos · <a href="https://quantocustaum.com/sobre/">Sobre</a> · <a href="#" data-boas-vindas>Boas-vindas</a> · <a href="https://quantocustaum.com/privacidade/">Privacidade</a> · <a href="https://github.com/projetoquantocusta1-alt/projetoquantocusta1-alt.github.io/issues">Pedir correção</a> · <a href="https://github.com/projetoquantocusta1-alt/quanto-custa-municipios-ba">Código aberto</a></p>
+</div>
+<script src="vendor/chart.umd.js"></script>
+<script src="boasvindas.js?v=1" data-site="mba"></script>
+<script src="app.js?v=1"></script>
+<!-- contador de visitas sem cookies e sem dados pessoais (GoatCounter) -->
+<script data-goatcounter="https://quantocustaum.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script>/* número de visitas: selo no topo (ou no rodapé, se a página não tiver selo); some se o GoatCounter não responder */
+(function () {
+  fetch("https://quantocustaum.goatcounter.com/counter/TOTAL.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    var n = d && parseInt(String(d.count || "").replace(/\D/g, ""), 10);
+    if (!n) return;
+    var fmt = function (x) { return x.toLocaleString("pt-BR"); };
+    var alvo = document.querySelector("[data-visitas]");
+    if (alvo) {
+      var b = alvo.querySelector("b"); alvo.hidden = false;
+      alvo.querySelector(".visitas").lastChild.textContent = n === 1 ? " visita ao Projeto Quanto Custa" : " visitas ao Projeto Quanto Custa";
+      if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { b.textContent = fmt(n); return; }
+      var t0 = null, dur = 1200;
+      (function passo(t) { if (!t0) t0 = t; var k = Math.min(1, (t - t0) / dur); b.textContent = fmt(Math.round(n * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(passo); })(performance.now());
+      return;
+    }
+    var rod = document.querySelector(".rodape"); if (!rod) return;
+    var s = document.createElement("span"); s.id = "qc-visitas"; s.textContent = " · " + fmt(n) + (n === 1 ? " visita" : " visitas"); rod.appendChild(s);
+  }).catch(function () {});
+})();
+</script>
+</body>
+</html>
