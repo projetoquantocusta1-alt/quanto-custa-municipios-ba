@@ -74,7 +74,7 @@ function avisosDoAno() {
   const falta = M.faltas?.[a] || [], parc = M.parciais?.[a] || [];
   if (falta.length) out.push(`<li class="sem_balancete"><b>${falta.length} prefeitura(s) não entregaram ao Tesouro o relatório de ${a}</b> (RREO): ${esc(falta.join(", "))}. Elas ficam fora dos totais e das listas deste ano. A entrega é obrigação de cada prefeitura (Lei de Responsabilidade Fiscal).</li>`);
   if (parc.length) out.push(`<li class="diferenca"><b>${parc.length} prefeitura(s) entregaram só parte de ${a}</b> (falta o último bimestre): ${esc(parc.map(([n, p]) => `${n} (${ateMes(p)})`).join(", "))}. Os valores delas são parciais.</li>`);
-  if (+a === Math.max(...M.anos)) out.push(`<li>${a} é o ano em andamento: cada prefeitura aparece até o último bimestre que entregou (a maioria, ${ateMes(M.periodo_mais_comum?.[a])}).</li>`);
+  if (+a === Math.max(...M.anos)) out.push(`<li>${a} é o ano em andamento: cada prefeitura aparece até o último bimestre que entregou (a maioria, ${ateMes(M.periodo_mais_comum?.[a])}). <b>O empenhado do ano em andamento já fica perto do valor do ano inteiro</b>, porque as câmaras costumam empenhar a folha e os contratos do ano todo logo no começo; o que acompanha o mês a mês é o <b>liquidado</b> (coluna ao lado). Não compare o empenhado de ${a} com o de um ano fechado como se fosse um aumento.</li>`);
   return out;
 }
 
