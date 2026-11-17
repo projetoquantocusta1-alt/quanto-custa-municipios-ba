@@ -1,12 +1,16 @@
-"""Projeto Quanto Custa — Prefeituras e câmaras da Bahia (configuração).
+"""Projeto Quanto Custa — Prefeituras e câmaras de um estado pelo SICONFI (configuração).
 
-Fonte das despesas: SICONFI (Tesouro Nacional), RREO Anexo 02. O TCM-BA (Tribunal de Contas dos Municípios
-da Bahia), que tem os dados nota a nota, não responde aos computadores do GitHub onde o robô roda.
+Fonte das despesas: SICONFI (Tesouro Nacional), RREO Anexo 02. O mesmo código serve para qualquer estado: só o
+bloco "ESTADO" abaixo muda de um repositório para outro (e o bloco CFG no começo de docs/uf.js).
 """
+# --- ESTADO (muda em cada repositório) ---
 UF = "BA"
 CODIGO_UF_IBGE = 29
 ESTADO = "Bahia"
 DO_ESTADO = "da Bahia"
+TOTAL_MUNICIPIOS = 417
+TRIBUNAL = "TCM-BA"   # tribunal de contas que tem os dados nota a nota das prefeituras do estado
+# --- fim do bloco ESTADO ---
 ANO_INICIAL = 2017
 
 USER_AGENT = "ProjetoQuantoCusta/1.0 (painel de transparencia com dados abertos)"
@@ -18,13 +22,13 @@ MANDATO_DA_ELEICAO = {2016: (2017, 2020), 2020: (2021, 2024), 2024: (2025, 2028)
 TSE_CAND_ZIP = "https://cdn.tse.jus.br/estatistica/sead/odsele/consulta_cand/consulta_cand_{ano}.zip"
 TSE_BENS_ZIP = "https://cdn.tse.jus.br/estatistica/sead/odsele/bem_candidato/bem_candidato_{ano}.zip"
 
-# --- IBGE: população estimada (tabela 6579) e Censo 2022 (tabela 4714), municípios da Bahia (N3 29) ---
+# --- IBGE: população estimada (tabela 6579) e Censo 2022 (tabela 4714), municípios do estado (N3 = código da UF) ---
 IBGE_ESTIMATIVA = ("https://servicodados.ibge.gov.br/api/v3/agregados/6579/periodos/all/"
-                   "variaveis/9324?localidades=N6[N3[29]]")
+                   f"variaveis/9324?localidades=N6[N3[{CODIGO_UF_IBGE}]]")
 IBGE_CENSO_2022 = ("https://servicodados.ibge.gov.br/api/v3/agregados/4714/periodos/2022/"
-                   "variaveis/93?localidades=N6[N3[29]]")
-SIDRA_ESTIMATIVA = "https://apisidra.ibge.gov.br/values/t/6579/n6/in%20n3%2029/v/9324/p/all"
-SIDRA_CENSO_2022 = "https://apisidra.ibge.gov.br/values/t/4714/n6/in%20n3%2029/v/93/p/2022"
+                   f"variaveis/93?localidades=N6[N3[{CODIGO_UF_IBGE}]]")
+SIDRA_ESTIMATIVA = f"https://apisidra.ibge.gov.br/values/t/6579/n6/in%20n3%20{CODIGO_UF_IBGE}/v/9324/p/all"
+SIDRA_CENSO_2022 = f"https://apisidra.ibge.gov.br/values/t/4714/n6/in%20n3%20{CODIGO_UF_IBGE}/v/93/p/2022"
 
 # --- IPCA (Banco Central, série 433) ---
 IPCA_SGS = ("https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados"

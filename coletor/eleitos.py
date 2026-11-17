@@ -1,4 +1,4 @@
-"""Prefeitos, vices e vereadores eleitos (TSE — dados abertos). Usado aqui para a Bahia.
+"""Prefeitos, vices e vereadores eleitos (TSE — dados abertos). Filtrado pelo estado de config.UF.
 
 consulta_cand_AAAA.zip -> consulta_cand_AAAA_CE.csv (latin-1, ';')
 bem_candidato_AAAA.zip -> bem_candidato_AAAA_CE.csv

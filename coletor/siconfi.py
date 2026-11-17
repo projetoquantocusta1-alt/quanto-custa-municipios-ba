@@ -1,6 +1,6 @@
 """SICONFI (Tesouro Nacional): despesa por função de cada município, de qualquer estado.
 
-Usado para os estados cujo Tribunal de Contas não abre os dados aos computadores do GitHub (Bahia: TCM-BA).
+Usado para os estados cujo Tribunal de Contas ainda não é lido pelo robô (por exemplo, o TCM-BA não responde aos computadores do GitHub).
 Fonte: RREO, Anexo 02 ("Demonstrativo da Execução das Despesas por Função/Subfunção"), que cada prefeitura
 entrega a cada bimestre. O 6º bimestre é o ano inteiro.
   - total: "DESPESAS (EXCETO INTRA-ORÇAMENTÁRIAS)", igual ao gasto total do TCE-CE (conferido).

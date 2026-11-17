@@ -1,4 +1,4 @@
-/* Bahia: avisos de limitação e quadro empenhado x liquidado */
+/* Estado pelo SICONFI: avisos de limitação e quadro empenhado x liquidado */
 .limite { background: #EEF4FB; border: 1px solid #B9D0EA; border-left: 5px solid #2463A6; border-radius: 10px; padding: 10px 14px; font-size: 14px; line-height: 1.5; color: #10243A; margin: 10px 0 12px; }
 .ep .ep-lista { display: grid; gap: 14px; margin: 6px 0 10px; }
 .ep-linha { border: 1px solid var(--line, #DDE4EB); border-radius: 10px; padding: 12px 14px; }

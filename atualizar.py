@@ -1,4 +1,4 @@
-"""Robô das prefeituras e câmaras da Bahia.
+"""Robô das prefeituras e câmaras de um estado (SICONFI); o estado está em config.py.
 
 Uso:
     python atualizar.py                    # SICONFI (o que falta) e monta o site
@@ -31,7 +31,7 @@ from coletor.texto import chave_nome
 RAIZ = Path(__file__).parent
 BRUTOS = RAIZ / "dados_brutos"
 SAIDA = RAIZ / "docs" / "dados"
-log = logging.getLogger("ba")
+log = logging.getLogger(config.UF.lower())
 
 
 def ler(p: Path, padrao=None):
@@ -65,7 +65,7 @@ def entes(hoje: date) -> list[dict]:
     if not lista or lista[0].get("_baixado") != hoje.isoformat()[:7]:
         try:
             novos = siconfi.entes(config.UF)
-            if len(novos) > 400:
+            if len(novos) >= 0.95 * config.TOTAL_MUNICIPIOS:
                 novos[0]["_baixado"] = hoje.isoformat()[:7]
                 gravar(arq, novos)
                 lista = novos
@@ -159,10 +159,10 @@ def tse(lista: list[dict], refazer=False) -> int:
 def ibge():
     try:
         pop = populacao.baixar_populacao()
-        ba = {k: v for k, v in pop.items() if k.startswith(str(config.CODIGO_UF_IBGE))}
-        if len(ba) > 400:
-            gravar(BRUTOS / "populacao.json", ba)
-            log.info("IBGE: população de %d municípios", len(ba))
+        doUF = {k: v for k, v in pop.items() if k.startswith(str(config.CODIGO_UF_IBGE))}
+        if len(doUF) >= 0.95 * config.TOTAL_MUNICIPIOS:
+            gravar(BRUTOS / "populacao.json", doUF)
+            log.info("IBGE: população de %d municípios", len(doUF))
     except Exception as e:  # noqa: BLE001
         log.warning("IBGE indisponível (%s); mantém a anterior", e)
 
@@ -275,7 +275,7 @@ def montar(hoje: date):
     sem_tse = sorted({n for el in config.ELEICOES_MUNICIPAIS for n in (ler(BRUTOS / "tse" / f"eleitos_{el}.json", {}) or {}).get("sem_ligacao", [])})
     gravar(SAIDA / "meta.json", {
         "gerado_em": datetime.now(timezone.utc).isoformat(timespec="minutes"),
-        "uf": config.UF, "estado": config.ESTADO, "do_estado": config.DO_ESTADO,
+        "uf": config.UF, "estado": config.ESTADO, "do_estado": config.DO_ESTADO, "tribunal": config.TRIBUNAL,
         "total_municipios": len(lista), "anos": sorted(anos), "ipca": ip,
         "cobertura": dict(cobertura), "faltas": {a: sorted(v) for a, v in faltas.items()},
         "parciais": parciais, "alertas_camara": lista_alertas, "periodo_mais_comum": {a: c.most_common(1)[0][0] for a, c in periodos.items()},
