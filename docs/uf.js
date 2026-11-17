@@ -9,7 +9,7 @@ const MAIN_BA = "<main>\n    <section class=\"pagina\" data-pag=\"inicio\">\n   
 (function montarCasca() {
   const velho = document.querySelector("main");
   if (velho) velho.outerHTML = MAIN_BA;
-  const css = document.createElement("link"); css.rel = "stylesheet"; css.href = AQUI + "bahia.css?v=2"; document.head.appendChild(css);
+  const css = document.createElement("link"); css.rel = "stylesheet"; css.href = AQUI + "bahia.css?v=3"; document.head.appendChild(css);
   document.title = "Projeto Quanto Custa — Prefeituras e câmaras da Bahia";
   document.querySelectorAll(".marca-sub, .topo-marca small").forEach(e => (e.textContent = "Prefeitos e vereadores · BA"));
   document.querySelectorAll('.menu nav button[data-pag="prefeitos"]').forEach(b => (b.hidden = true));
@@ -49,7 +49,16 @@ function linha(m, ano = E.ano) {
   o.camPct = o.gasto_total ? o.camara / o.gasto_total : null;
   return o;
 }
-const linhas = () => E.res.map(m => [m, linha(m)]).filter(([, l]) => l);
+const linhasTodas = () => E.res.map(m => [m, linha(m)]).filter(([, l]) => l);
+// valores da câmara que não conferem (zerados ou fora do padrão no relatório) ficam fora dos totais e dos rankings
+const linhas = () => linhasTodas().filter(([, l]) => !l.alerta);
+const fmtAlerta = (nome, tipo, v, med) => tipo === "zerada"
+  ? `${nome} (câmara zerada)`
+  : `${nome} (${curto(v)}${med ? `; o normal desta câmara é perto de ${curto(med)}` : ""})`;
+const TEXTO_ALERTA = {
+  zerada: "A função Legislativa (a câmara) veio zerada no relatório que a prefeitura entregou ao Tesouro. Uma câmara não custa zero: a despesa dela provavelmente foi lançada em outra área do relatório ou não foi somada. Por isso esta câmara fica fora dos totais e dos rankings neste ano.",
+  fora_do_padrao: "O valor da câmara no relatório que a prefeitura entregou ao Tesouro está fora do padrão: acima de 8% de todo o gasto da prefeitura (a Constituição limita a câmara a no máximo 7%), ou várias vezes maior ou menor que o normal desta câmara nos outros anos. É provável um erro de classificação no relatório. Mostramos o valor como veio, mas ele fica fora dos totais e dos rankings até ser corrigido pela prefeitura.",
+};
 function kpis(el, itens) { $(el).innerHTML = itens.map(([r, v, o]) => `<div class="kpi"><div class="rot">${r}</div><div class="val num">${v}</div>${o ? `<div class="obs">${o}</div>` : ""}</div>`).join(""); }
 function top5(el, lista, fmt, sub) {
   $(el).innerHTML = lista.slice(0, 5).map(([m, val, l]) => `<li><span><button class="link-dep" data-ibge="${m.ibge}">${esc(m.nome)}</button><span class="s">${sub(m, l)}</span></span><span class="v">${fmt(val)}</span></li>`).join("")
@@ -73,6 +82,8 @@ function avisosDoAno() {
   const a = String(E.ano), M = E.meta, out = [];
   const falta = M.faltas?.[a] || [], parc = M.parciais?.[a] || [];
   if (falta.length) out.push(`<li class="sem_balancete"><b>${falta.length} prefeitura(s) não entregaram ao Tesouro o relatório de ${a}</b> (RREO): ${esc(falta.join(", "))}. Elas ficam fora dos totais e das listas deste ano. A entrega é obrigação de cada prefeitura (Lei de Responsabilidade Fiscal).</li>`);
+  const al = M.alertas_camara?.[a] || [];
+  if (al.length) out.push(`<li class="diferenca"><b>${al.length} câmara(s) com valor que não confere no relatório de ${a}</b> e que ficaram fora dos totais e da lista: ${esc(al.map(([n, t, v, med]) => fmtAlerta(n, t, x(v), x(med))).join("; "))}. Zerada = a área "Legislativa" veio zerada no relatório da prefeitura (a despesa da câmara provavelmente foi lançada em outra área); os outros valores estão muito fora do padrão da própria câmara ou acima do limite constitucional. A correção cabe à prefeitura.</li>`);
   if (parc.length) out.push(`<li class="diferenca"><b>${parc.length} prefeitura(s) entregaram só parte de ${a}</b> (falta o último bimestre): ${esc(parc.map(([n, p]) => `${n} (${ateMes(p)})`).join(", "))}. Os valores delas são parciais.</li>`);
   if (+a === Math.max(...M.anos)) out.push(`<li>${a} é o ano em andamento: cada prefeitura aparece até o último bimestre que entregou (a maioria, ${ateMes(M.periodo_mais_comum?.[a])}). <b>O empenhado do ano em andamento já fica perto do valor do ano inteiro</b>, porque as câmaras costumam empenhar a folha e os contratos do ano todo logo no começo; o que acompanha o mês a mês é o <b>liquidado</b> (coluna ao lado). Não compare o empenhado de ${a} com o de um ano fechado como se fosse um aumento.</li>`);
   return out;
@@ -132,8 +143,9 @@ async function rMunicipio() {
   $("#m-titulo").textContent = D.nome;
   const a = D.anos[E.ano], el = eleicaoDoAno(+E.ano), ele = D.eleitos?.[el];
   const falta = (E.meta.faltas?.[E.ano] || []).includes(D.nome);
-  $("#m-diverg").hidden = !(falta || (a && !a.fechado && +E.ano < Math.max(...E.meta.anos)));
-  $("#m-diverg").innerHTML = falta ? `<strong>Atenção: a prefeitura de ${esc(D.nome)} não entregou ao Tesouro Nacional o relatório de ${E.ano}</strong> (RREO). Sem ele não há os gastos deste ano. A entrega é obrigação da prefeitura (Lei de Responsabilidade Fiscal).`
+  $("#m-diverg").hidden = !(falta || a?.alerta || (a && !a.fechado && +E.ano < Math.max(...E.meta.anos)));
+  $("#m-diverg").innerHTML = a?.alerta ? `<strong>Atenção: o valor da câmara em ${E.ano} não confere.</strong> ${TEXTO_ALERTA[a.alerta.tipo] || ""}${a.alerta.mediana ? ` Nos outros anos, esta câmara custou perto de ${curto(x(a.alerta.mediana))} por ano.` : ""}`
+    : falta ? `<strong>Atenção: a prefeitura de ${esc(D.nome)} não entregou ao Tesouro Nacional o relatório de ${E.ano}</strong> (RREO). Sem ele não há os gastos deste ano. A entrega é obrigação da prefeitura (Lei de Responsabilidade Fiscal).`
     : a && !a.fechado ? `<strong>Atenção: dados parciais.</strong> A prefeitura entregou o relatório de ${E.ano} só ${ateMes(a.periodo)}; falta o último bimestre.` : "";
   if (!a) { $("#m-sub").textContent = `Sem dados de ${E.ano}.`; $("#m-kpis").innerHTML = ""; $("#m-empenho").innerHTML = ""; }
   else {
@@ -172,8 +184,11 @@ async function rMunicipio() {
 
 /* ------------------------------------------------ método */
 function rMetodo() {
-  const F = E.meta.faltas || {}, sem = E.meta.tse_sem_ligacao || [];
+  const F = E.meta.faltas || {}, sem = E.meta.tse_sem_ligacao || [], AL = E.meta.alertas_camara || {};
   $("#m-faltas").innerHTML = `<h2>Prefeituras que não entregaram o relatório ao Tesouro</h2>${Object.keys(F).length ? `<ul>${Object.entries(F).sort().reverse().map(([a, l]) => `<li><b>${a}</b> (${l.length}): ${esc(l.join(", "))}</li>`).join("")}</ul>` : "<p>Nenhuma até agora.</p>"}
+    <h2>Câmaras com valor que não confere no relatório</h2>
+    <p>Ficam fora dos totais e dos rankings do ano (o valor aparece, com o aviso, na página do município). <b>Zerada</b>: a área "Legislativa" veio zerada no relatório da prefeitura. <b>Fora do padrão</b>: no ano fechado, acima de 8% do gasto da prefeitura (a Constituição limita a câmara a 7%), ou mais de 4 vezes (ou, no ano fechado, menos de 30%) o normal da própria câmara nos outros anos. Um aumento de um ano para o outro, sozinho, não é marcado, porque pode ser real.</p>
+    ${Object.keys(AL).length ? `<ul>${Object.entries(AL).sort().reverse().map(([a, l]) => `<li><b>${a}</b> (${l.length}): ${esc(l.map(([n, t, v, med]) => fmtAlerta(n, t, v, med)).join("; "))}</li>`).join("")}</ul>` : "<p>Nenhuma até agora.</p>"}
     ${sem.length ? `<p><b>Municípios cujo nome no TSE não conseguimos ligar ao IBGE</b> (sem vereadores e prefeito nesta página): ${esc(sem.join(", "))}.</p>` : ""}`;
 }
 

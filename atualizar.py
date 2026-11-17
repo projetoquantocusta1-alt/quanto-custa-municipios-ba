@@ -198,7 +198,32 @@ def eleicao_do_ano(ano: int) -> int | None:
     return None
 
 
-CAMPOS = ["periodo", "populacao", "gasto_total", "camara", "camara_liquidado", "n_vereadores", "teto_subsidio_vereador"]
+CAMPOS = ["periodo", "populacao", "gasto_total", "camara", "camara_liquidado", "n_vereadores", "teto_subsidio_vereador", "alerta"]
+
+# Valor da câmara que não dá para aceitar como está (fica fora dos totais e dos rankings, com o aviso):
+#  - "zerada": a função Legislativa veio zerada (ou negativa) no relatório da prefeitura; a despesa da câmara
+#    provavelmente foi lançada em outra função ou não foi consolidada;
+#  - "fora_do_padrao": no ano fechado, acima de 8% do gasto da prefeitura (a Constituição limita a câmara a 7%,
+#    no máximo; no ano em andamento a conta não vale, porque a câmara empenha o ano todo no começo), ou mais
+#    de 4 vezes (ou, no ano fechado, menos de 0,3 vez) a mediana da própria câmara nos outros anos; provável erro de
+#    classificação no relatório. Aumento de um ano para o outro, sozinho, não é marcado (pode ser real).
+FATOR_FORA = 4.0
+LIMITE_PCT_PREFEITURA = 0.08
+
+
+def alertas_camara(d: dict, desde: int) -> dict:
+    validos = {a: x["funcoes"].get("Legislativa", [0])[0] for a, x in d.items()
+               if not x.get("falta") and int(a) >= desde}
+    out = {}
+    for a, v in validos.items():
+        outros = sorted(w for b, w in validos.items() if b != a and w > 0)
+        med = outros[len(outros) // 2] if len(outros) >= 3 else None
+        x = d[a]
+        if v <= 0:
+            out[a] = {"tipo": "zerada", "mediana": med}
+        elif (x.get("periodo") == 6 and x["total"][0] > 0 and v / x["total"][0] > LIMITE_PCT_PREFEITURA) or (med and (v > FATOR_FORA * med or (x.get("periodo") == 6 and v < 0.3 * med))):
+            out[a] = {"tipo": "fora_do_padrao", "mediana": med}
+    return out
 
 
 def montar(hoje: date):
@@ -206,7 +231,7 @@ def montar(hoje: date):
     pop = ler(BRUTOS / "populacao.json", {}) or {}
     ip = ler(BRUTOS / "ipca.json", {"fatores": {}, "referencia": None})
     eleitos = {el: (ler(BRUTOS / "tse" / f"eleitos_{el}.json", {}) or {}).get("municipios", {}) for el in config.ELEICOES_MUNICIPAIS}
-    resumo, cobertura, faltas, parciais, periodos = [], Counter(), {}, {}, {}
+    resumo, cobertura, faltas, parciais, periodos, lista_alertas = [], Counter(), {}, {}, {}, {}
     anos = set()
     for e in lista:
         i = e["ibge"]
@@ -217,6 +242,7 @@ def montar(hoje: date):
             if x:
                 det["eleitos"][str(el)] = x
         linhas = {}
+        alertas = alertas_camara(d, config.ANO_INICIAL)
         for ano_s, x in sorted(d.items()):
             ano = int(ano_s)
             if ano < config.ANO_INICIAL:
@@ -236,8 +262,10 @@ def montar(hoje: date):
                                   "gasto_total": x["total"][0], "gasto_total_liquidado": x["total"][1],
                                   "camara": cam[0], "camara_liquidado": cam[1], "camara_rp_nao_processados": cam[2],
                                   "funcoes": {k: v[:2] for k, v in sorted(x["funcoes"].items(), key=lambda kv: -kv[1][0])},
-                                  "teto_subsidio_vereador": teto}
-            linhas[ano_s] = [x["periodo"], p, x["total"][0], cam[0], cam[1], n_ver, teto]
+                                  "teto_subsidio_vereador": teto, "alerta": alertas.get(ano_s)}
+            linhas[ano_s] = [x["periodo"], p, x["total"][0], cam[0], cam[1], n_ver, teto, (alertas.get(ano_s) or {}).get("tipo")]
+            if ano_s in alertas:
+                lista_alertas.setdefault(ano_s, []).append([e["nome"], alertas[ano_s]["tipo"], cam[0], alertas[ano_s]["mediana"]])
             cobertura[ano_s] += 1
             periodos.setdefault(ano_s, Counter())[x["periodo"]] += 1
             anos.add(ano)
@@ -250,7 +278,7 @@ def montar(hoje: date):
         "uf": config.UF, "estado": config.ESTADO, "do_estado": config.DO_ESTADO,
         "total_municipios": len(lista), "anos": sorted(anos), "ipca": ip,
         "cobertura": dict(cobertura), "faltas": {a: sorted(v) for a, v in faltas.items()},
-        "parciais": parciais, "periodo_mais_comum": {a: c.most_common(1)[0][0] for a, c in periodos.items()},
+        "parciais": parciais, "alertas_camara": lista_alertas, "periodo_mais_comum": {a: c.most_common(1)[0][0] for a, c in periodos.items()},
         "tse_sem_ligacao": sem_tse, "eleicoes": config.ELEICOES_MUNICIPAIS,
         "fonte": "SICONFI (Tesouro Nacional), RREO Anexo 02",
     })
