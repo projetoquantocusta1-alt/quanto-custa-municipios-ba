@@ -283,9 +283,10 @@ def alertas_camara(d: dict, desde: int) -> dict:
     return out
 
 
-def prever_dcl(serie: list[tuple[int, float]]) -> dict | None:
-    """Projeção simples (tendência linear) da dívida líquida para o ano seguinte ao último fechado.
-    Precisa de pelo menos 3 anos fechados. Marcada sempre como estimativa."""
+def prever_dcl(serie: list[tuple[int, float]], ano_alvo: int) -> dict | None:
+    """Projeção simples (tendência linear) da dívida líquida para 'ano_alvo' (o ano seguinte ao
+    último com dado). Fita a reta nos anos fechados; precisa de pelo menos 3. Sempre uma estimativa.
+    A DCL pode ficar negativa (cidade com mais caixa que dívida), então não é cortada em zero."""
     if len(serie) < 3:
         return None
     xs = [a for a, _ in serie]
@@ -297,9 +298,8 @@ def prever_dcl(serie: list[tuple[int, float]]) -> dict | None:
     if sxx == 0:
         return None
     b = sxy / sxx
-    prox = xs[-1] + 1
-    pred = (my - b * mx) + b * prox
-    return {"ano": prox, "dcl": round(max(pred, 0.0), 2), "metodo": "tendência dos últimos anos"}
+    pred = (my - b * mx) + b * ano_alvo
+    return {"ano": ano_alvo, "dcl": round(pred, 2), "metodo": "tendência dos últimos anos"}
 
 
 def divida_do_municipio(ibge: str) -> dict | None:
@@ -320,7 +320,7 @@ def divida_do_municipio(ibge: str) -> dict | None:
         return None
     serie = sorted((int(a), v["dcl"]) for a, v in anos.items() if v["fechado"] and v["dcl"] is not None)
     ultimo = max(anos)
-    return {"anos": anos, "ultimo": ultimo, "previsao": prever_dcl(serie)}
+    return {"anos": anos, "ultimo": ultimo, "previsao": prever_dcl(serie, int(ultimo) + 1)}
 
 
 def montar(hoje: date):
